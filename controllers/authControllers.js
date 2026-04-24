@@ -34,9 +34,9 @@ export const loginUser = async (req, res) => {
 
             await res.cookie(`token`, token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: process.env.NODE_ENV === 'production' ? true : true, // true for both envs (localhost considered secure)
                 maxAge: 24 * 60 * 60 * 1000, // 1 day
-                sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+                sameSite: 'none' // Allow cross-origin
             });
             await userlogActivity({
                 user_id: findUser._id,
@@ -132,7 +132,11 @@ export const logoutUser = async (req, res) => {
 
     })
 
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production' ? true : true,
+      sameSite: 'none'
+    });
     return res.status(200).json({ message: "Logout Successfully!", redirectUrl: "/admin/login" });
 
 }
@@ -209,10 +213,9 @@ export const updateProfile = async (req, res) => {
         // Ensure you include the necessary httpOnly and secure flags here
         res.cookie('token', newToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: process.env.NODE_ENV === 'production' ? true : true,
             maxAge: 24 * 60 * 60 * 1000, // 1 day
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
-
+            sameSite: 'none'
         });
         return res.status(200).json({
             message: "Profile Updated Successfully!",
@@ -226,7 +229,11 @@ export const updateProfile = async (req, res) => {
     } catch (err) {
         // Handle JWT verification errors (e.g., token expired)
         if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-            res.clearCookie('token'); // Clear invalid cookie
+            res.clearCookie('token', {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production' ? true : true,
+              sameSite: 'none'
+            }); // Clear invalid cookie
             return res.status(401).json({
                 redirectUrl: "/admin/login",
                 message: "Invalid or expired token."

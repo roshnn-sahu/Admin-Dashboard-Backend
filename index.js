@@ -15,6 +15,7 @@ import companyRouters from './routes/companyRouters.js'
 import userActivityRouter from './routes/userActivityRouter.js'
 
 import rightsRouters from "./routes/rightsRouters.js"
+import cmsRouters from './routes/cmsRouters.js';
 
 
 connectDB();
@@ -26,7 +27,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
   credentials: true,
 }));
 
@@ -62,8 +63,11 @@ app.use(companyRouters)
 app.use(userActivityRouter)
 
 //user Rights Routes
+app.use("/api", rightsRouters)
 
-app.use("/api",rightsRouters)
+//CMS Routes
+
+app.use("/api/cms", cmsRouters);
 
 
 
