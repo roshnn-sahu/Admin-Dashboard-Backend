@@ -1,27 +1,119 @@
-import cmsModal from "../models/cmsModal.js";
+import mongoose from "mongoose";
+import cmsModel from "../models/cmsModel.js";
 
 
 // CREATE
+
+
+// ✅ Helper: sanitize URL slug
+const sanitizeUrl = (url) =>
+  url
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-_/]/g, "-") // only allow safe chars
+    .replace(/-+/g, "-");           // collapse multiple dashes
+
+// ✅ CREATE
 export const createPage = async (req, res) => {
+  try {
+    const data = { ...req.body };
 
+    // Fix parent — only keep if it's a valid ObjectId
+    if (!data.parent || !mongoose.isValidObjectId(data.parent)) {
+      data.parent = null;
+    }
 
-  console.log(req.body)
-  // try {
-  //   const page = await cmsModal.create(req.body);
-  //   res.status(201).json(page);
-  // } catch (error) {
-  //   res.status(500).json({ message: error.message });
-  // }
+    // Sanitize URL
+    if (data.url) {
+      data.url = sanitizeUrl(data.url);
+    }
+
+    // Parse nested objects safely (in case they come as JSON strings from FormData)
+    ["order", "position", "class"].forEach((key) => {
+      if (typeof data[key] === "string") {
+        try {
+          data[key] = JSON.parse(data[key]);
+        } catch {
+          data[key] = {};
+        }
+      }
+    });
+
+    // Ensure order values are numbers
+    if (data.order) {
+      data.order = {
+        menu: Number(data.order.menu) || 0,
+        top_header: Number(data.order.top_header) || 0,
+        footer: Number(data.order.footer) || 0,
+      };
+    }
+
+    const cms = await cmsModel.create(data);
+    res.status(201).json({ success: true, data: cms });
+
+  } catch (err) {
+    console.error("createPage error:", err);
+
+    if (err.code === 11000) {
+      return res.status(400).json({ success: false, message: "URL already exists. Choose a different slug." });
+    }
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
 };
 
 
-// GET ALL
-export const getPages = async (req, res) => {
+
+// GET ALL PAGES
+export const getAllPages = async (req, res) => {
   try {
-    const pages = await cmsModal.find().populate("parent");
-    res.json(pages);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const { type, search, page = 1, limit = 10 } = req.query;
+    console.log(type, search)
+    // Build filter
+    const filter = {};
+
+    // Filter by type (page / cms)
+    if (type && ["page", "cms"].includes(type)) {
+      filter.type = type;
+    }
+
+    // Search by name or url
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { url: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Pagination
+    const skip = (Number(page) - 1) * Number(limit);
+    const total = await cmsModel.countDocuments(filter);
+
+    const pages = await cmsModel
+      .find(filter)
+      .populate("parent", "name url")   // shows parent's name & url only
+      .sort({ createdAt: -1 })          // newest first
+      .skip(skip)
+      .limit(Number(limit))
+      .select("-content -styles");      // skip heavy fields in list view
+
+ 
+
+    res.status(200).json({
+      success: true,
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      totalPages: Math.ceil(total / Number(limit)),
+      data: pages,
+    });
+
+  } catch (err) {
+    console.error("getAllPages error:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };
 

@@ -39,7 +39,7 @@ const cmsSchema = new Schema(
 
         parent: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "cms",
+            ref: "tbl_cms",
             default: null,
         },
 
@@ -87,5 +87,5 @@ const cmsSchema = new Schema(
 
 
 
-const CmsModel = mongoose.model("tbl_cms", cmsSchema);
-export default CmsModel;
+const cmsModel = mongoose.model("tbl_cms", cmsSchema);
+export default cmsModel;
