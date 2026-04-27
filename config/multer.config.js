@@ -3,7 +3,7 @@ import path from "path";
 //Multer storage configration for Profile image store
 const profileStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, "public/uploads");
+        cb(null, "public/uploads/profile");
     },
     filename: function (req, file, cb) {
         const { id } = req.params;
@@ -16,10 +16,10 @@ const profileStorage = multer.diskStorage({
 });
 export const profileUploads = multer({ storage: profileStorage });
 
-//Multer storage configration
+//Multer storage configration  
 const companyStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, "public/uploads");
+        cb(null, "public/uploads/company");
     },
     filename: function (req, file, cb) {
         const ext = path.extname(file.originalname); // e.g. ".png"

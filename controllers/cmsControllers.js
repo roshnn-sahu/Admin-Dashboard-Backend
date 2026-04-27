@@ -71,7 +71,7 @@ export const createPage = async (req, res) => {
 export const getAllPages = async (req, res) => {
   try {
     const { type, search, page = 1, limit = 10 } = req.query;
-    console.log(type, search)
+
     // Build filter
     const filter = {};
 
@@ -100,7 +100,7 @@ export const getAllPages = async (req, res) => {
       .limit(Number(limit))
       .select("-content -styles");      // skip heavy fields in list view
 
- 
+
 
     res.status(200).json({
       success: true,
@@ -118,38 +118,66 @@ export const getAllPages = async (req, res) => {
 };
 
 
-// GET SINGLE
+// GET SINGLE PAGE BY ID
 export const getPageById = async (req, res) => {
   try {
-    const page = await cmsModal.findById(req.params.id).populate("parent");
 
-    if (!page) return res.status(404).json({ message: "Page not found" });
+    // ✅ Check if ID is valid MongoDB ObjectId before querying
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid page ID" });
+    }
 
-    res.json(page);
+    const page = await cmsModel  // ✅ fixed typo: cmsModal → cmsModel
+      .findById(req.params.id)
+      .populate("parent", "name url"); // ✅ only get name & url from parent, not full doc
+
+    if (!page) {
+      return res.status(404).json({ success: false, message: "Page not found" });
+    }
+
+    // ✅ consistent response shape like your other controllers
+    res.status(200).json({ success: true, data: page });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("getPageById error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 // GET BY URL (for frontend rendering)
 export const getPageByUrl = async (req, res) => {
   try {
-    const page = await cmsModal.findOne({ url: req.params.url });
+    const rawSlug = Array.isArray(req.params.url)
+      ? req.params.url.join("/")
+      : req.params.url;
 
-    if (!page) return res.status(404).json({ message: "Page not found" });
+    // ✅ search exactly as stored in DB, no prefix added
+    const slug = rawSlug;
 
-    res.json(page);
+    console.log("Looking for slug:", slug); // → "example-cms"
+
+    const page = await cmsModel
+      .findOne({ url: slug })
+      .populate("parent", "name url");
+
+    if (!page) {
+      return res.status(404).json({ success: false, message: "Page not found" });
+    }
+
+    res.status(200).json({ success: true, data: page });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("getPageByUrl error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 
 // UPDATE
 export const updatePage = async (req, res) => {
+
   try {
-    const page = await cmsModal.findByIdAndUpdate(
+    const page = await cmsModel.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
@@ -157,18 +185,18 @@ export const updatePage = async (req, res) => {
 
     if (!page) return res.status(404).json({ message: "Page not found" });
 
-    res.json(page);
+    res.status(200).json({ success: true, data: page, message: "Page updated successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 // DELETE
 export const deletePage = async (req, res) => {
   try {
-    await Page.findByIdAndDelete(req.params.id);
-    res.json({ message: "Page deleted successfully" });
+    const page = await cmsModel.findByIdAndDelete(req.params.id);
+    if (!page) return res.status(404).json({ message: "Page not found" });
+    res.json({ success: true, data: page, message: "Page deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

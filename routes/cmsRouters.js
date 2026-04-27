@@ -5,9 +5,9 @@ const router = express.Router();
 
 router.post("/create-cms", createPage);
 router.get("/", getAllPages);
-router.get("/url/:url", getPageByUrl); // for dynamic page renderingf
-router.get("/:id", getPageById);
-router.put("/:id", updatePage);
-router.delete("/:id", deletePage);
+router.get("/page/*url", getPageByUrl);// for dynamic page renderingf
+router.get("/pages/:id", getPageById);
+router.put("/pages/:id", updatePage);
+router.delete("/pages/:id", deletePage);
 
 export default router;
