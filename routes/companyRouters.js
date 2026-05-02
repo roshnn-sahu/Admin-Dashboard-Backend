@@ -1,6 +1,6 @@
 import express from "express";
 import { manageCompany, getCompany } from "../controllers/companyController.js";
-import { companyUploads } from "../config/multer.config.js";
+import { companyUploads } from "../middleware/multer-uploads/companyUploads.js";
 import userAuthentication from "../middleware/userAuthentication.js";
 import getClientDetails from "../middleware/getClientInfo.js";
 

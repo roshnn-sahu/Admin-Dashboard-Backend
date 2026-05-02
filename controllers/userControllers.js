@@ -95,7 +95,7 @@ export const editUser = async (req, res) => {
         }
         // Update user safely and return the new document
         const updatedUser = await userModel.findOneAndUpdate(
-            {_id: id },
+            { _id: id },
             {
                 $set: updateFields,
             },

@@ -1,7 +1,8 @@
 import express from "express";
 import { loginUser, registerUser, logoutUser, checkAuth, updateProfile, changePassword, forgetPassword } from '../controllers/authControllers.js';
 import userAuthentication from "../middleware/userAuthentication.js";
-import { profileUploads, companyUploads } from "../config/multer.config.js";
+import { profileUploads } from "../middleware/multer-uploads/profileUploads.js";
+import { companyUploads } from "../middleware/multer-uploads/companyUploads.js";
 import getClientDetails from "../middleware/getClientInfo.js";
 
 const router = express.Router();
