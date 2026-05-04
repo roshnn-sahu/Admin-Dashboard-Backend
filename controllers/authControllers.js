@@ -77,6 +77,7 @@ export const registerUser = async (req, res) => {
 
 
 
+
         const exitingEmail = await userModel.findOne({ email_id: email });
         if (exitingEmail) return res.status(400).json({ message: "Email Already Exist!" });
         const exitingMobile = await userModel.findOne({ mobile: mobile });
@@ -88,7 +89,7 @@ export const registerUser = async (req, res) => {
                     name: modifiedName,
                     role: role,
                     email_id: email,
-                    image: imageFileName,
+                    image: `/uploads/profile/${imageFileName}`,
                     gender: gender,
                     mobile: mobile,
                     password: hashPassword
@@ -121,7 +122,7 @@ export const registerUser = async (req, res) => {
 export const logoutUser = async (req, res) => {
     const { browser, ip, os, browserVersion } = req.clientDetails;
     const { doc_id, role } = req.user;
-    
+
     await userlogActivity({
         user_id: doc_id,
         role: role,
@@ -133,9 +134,9 @@ export const logoutUser = async (req, res) => {
     })
 
     res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production' ? true : true,
-      sameSite: 'none'
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production' ? true : true,
+        sameSite: 'none'
     });
     return res.status(200).json({ message: "Logout Successfully!", redirectUrl: "/admin/login" });
 
@@ -230,9 +231,9 @@ export const updateProfile = async (req, res) => {
         // Handle JWT verification errors (e.g., token expired)
         if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
             res.clearCookie('token', {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production' ? true : true,
-              sameSite: 'none'
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production' ? true : true,
+                sameSite: 'none'
             }); // Clear invalid cookie
             return res.status(401).json({
                 redirectUrl: "/admin/login",

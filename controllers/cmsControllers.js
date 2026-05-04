@@ -48,6 +48,16 @@ export const createPage = async (req, res) => {
       };
     }
 
+    // Handle images if uploaded
+    if (req.files) {
+      if (req.files.thumbnail) {
+        data.thumbnail = `/uploads/cms/${req.files.thumbnail[0].filename}`;
+      }
+      if (req.files.breadcrumb) {
+        data.breadcrumb = `/uploads/cms/${req.files.breadcrumb[0].filename}`;
+      }
+    }
+
     const cms = await cmsModel.create(data);
     res.status(201).json({ success: true, data: cms });
 
@@ -177,9 +187,32 @@ export const getPageByUrl = async (req, res) => {
 export const updatePage = async (req, res) => {
 
   try {
+    const data = { ...req.body };
+
+    // Parse nested objects safely
+    ["order", "position", "class"].forEach((key) => {
+      if (typeof data[key] === "string") {
+        try {
+          data[key] = JSON.parse(data[key]);
+        } catch {
+          data[key] = {};
+        }
+      }
+    });
+
+    // Handle images if uploaded
+    if (req.files) {
+      if (req.files.thumbnail) {
+        data.thumbnail = `/uploads/cms/${req.files.thumbnail[0].filename}`;
+      }
+      if (req.files.breadcrumb) {
+        data.breadcrumb = `/uploads/cms/${req.files.breadcrumb[0].filename}`;
+      }
+    }
+
     const page = await cmsModel.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      data,
       { new: true }
     );
 

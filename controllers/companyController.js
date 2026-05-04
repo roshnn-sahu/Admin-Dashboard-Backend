@@ -41,10 +41,10 @@ export const manageCompany = async (req, res) => {
 
         const files = req.files || {};
         const images = {};
-        if (files.icon) images.icon = files.icon[0].filename;
-        if (files.logo) images.logo = files.logo[0].filename;
-        if (files.login_icon) images.login_icon = files.login_icon[0].filename;
-        if (files.login_bg) images.login_bg = files.login_bg[0].filename;
+        if (files.icon) images.icon = `/uploads/company/${files.icon[0].filename}`;
+        if (files.logo) images.logo = `/uploads/company/${files.logo[0].filename}`;
+        if (files.login_icon) images.login_icon = `/uploads/company/${files.login_icon[0].filename}`;
+        if (files.login_bg) images.login_bg = `/uploads/company/${files.login_bg[0].filename}`;
 
         let company = await CompanyModel.findOne();
         if (company) {
