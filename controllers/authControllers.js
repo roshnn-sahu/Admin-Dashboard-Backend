@@ -161,6 +161,7 @@ export const checkAuth = async (req, res) => {
 
 
 }
+
 export const updateProfile = async (req, res) => {
 
     const { name, gender } = req.body ? req.body : false;
@@ -181,7 +182,7 @@ export const updateProfile = async (req, res) => {
         const updateFields = {};
         if (name) updateFields.name = modifiedName;
         if (gender) updateFields.gender = gender;
-        if (imageFileName) updateFields.image = imageFileName; // Assuming 'image' field update is intended
+        if (imageFileName) updateFields.image = "/uploads/profile/" + imageFileName; // Assuming 'image' field update is intended
 
         // 6. Update the User in the Database (Single, consolidated DB call)
         const updatedUser = await userModel.findOneAndUpdate(

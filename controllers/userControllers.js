@@ -91,7 +91,7 @@ export const editUser = async (req, res) => {
         };
 
         if (req.file) {
-            updateFields.image = req.file.filename;
+            updateFields.image = "/uploads/profile/" + req.file.filename;
         }
         // Update user safely and return the new document
         const updatedUser = await userModel.findOneAndUpdate(
